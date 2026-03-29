@@ -236,7 +236,7 @@ def get_gemini_response(prompt, history):
     # 1. Define the API configuration
     system_prompt = "You are a Senior Cybersecurity Consultant named 'Gemini Defense Bot'. Your goal is to provide clear, actionable, and up-to-date advice on cybersecurity threats, incident response, and best practices. Use a professional, helpful, and concise tone. Always cite your sources if you use real-time information. Do not mention your internal system name or model version."
     
-    API_KEY = "AIzaSyDz2Sk0cXaE9ukMLYM-SV_keGGqHJq7Jbc" # Must be empty string
+    API_KEY = "" # Must be empty string
     API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={API_KEY}"
 
     # 2. Format the chat history for the API payload
