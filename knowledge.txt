@@ -1,0 +1,11 @@
+Phishing attacks are fraudulent attempts to steal sensitive data using deceptive URLs.
+Malicious URLs often contain abnormal domain lengths, special characters, or IP-based domains.
+Machine learning models classify cyber threats using lexical, host-based, and behavioral features.
+High-risk cybersecurity incidents are identified using ensemble classifiers and neural networks.
+Retrieval-Augmented Generation improves answer accuracy by combining document retrieval with LLMs.
+A DDoS (Distributed Denial of Service) attack is a cyber attack where multiple systems flood a server with traffic,
+ making it unavailable to users.
+ Ransomware is a type of malware that locks or encrypts data and demands payment.
+DDoS attacks overwhelm servers with traffic.
+Phishing attacks trick users into revealing sensitive information.
+Machine learning helps detect cyber threats by analyzing patterns.
