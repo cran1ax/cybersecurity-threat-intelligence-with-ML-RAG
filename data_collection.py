@@ -8,8 +8,17 @@ class CybersecurityDataCollector:
     def __init__(self):
         self.dataset = None
     
-    def generate_synthetic_data(self, n_samples=5000):
-        """Generate realistic cybersecurity threat data"""
+    def generate_synthetic_data(self, n_samples=5000, filename='cybersecurity_threats.csv'):
+        """Generate realistic cybersecurity threat data or load existing from CSV"""
+        import os
+        if os.path.exists(filename):
+            print(f"Loading existing data from {filename}")
+            self.dataset = pd.read_csv(filename)
+            # Ensure timestamp is datetime type
+            self.dataset['timestamp'] = pd.to_datetime(self.dataset['timestamp'])
+            return self.dataset
+            
+        print("Generating new synthetic data...")
         np.random.seed(42)
         
         # Feature parameters

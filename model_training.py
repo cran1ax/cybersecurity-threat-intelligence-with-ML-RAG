@@ -29,8 +29,16 @@ load_dotenv()
 warnings.filterwarnings('ignore')
 
 # Helper function for generating synthetic URL data
-def generate_mock_url_data(n_samples=500):
-    """Generates synthetic URLs and their binary risk labels."""
+def generate_mock_url_data(n_samples=500, filename='synthetic_urls.csv'):
+    """Generates synthetic URLs and their binary risk labels, or loads from CSV."""
+    import os
+    import pandas as pd
+    if os.path.exists(filename):
+        print(f"Loading existing URL data from {filename}")
+        df = pd.read_csv(filename)
+        return df['url'].tolist(), df['risk'].values
+
+    print("Generating new synthetic URL data...")
     safe_domains = ['google.com', 'microsoft.com', 'wikipedia.org', 'streamlit.io', 'github.com']
     mal_patterns = ['login', 'verify', 'update', 'docs', 'secure', 'bank']
     
@@ -57,11 +65,26 @@ def generate_mock_url_data(n_samples=500):
             risks.append(0)
         urls.append(url)
         
+    # Save default generation to CSV
+    pd.DataFrame({'url': urls, 'risk': risks}).to_csv(filename, index=False)
+    print(f"URL data saved to {filename}")
+        
     return urls, np.array(risks)
 
 
 # ==================== 1. DATA GENERATION (Incident Metrics) ====================
-def generate_cybersecurity_data(n_samples=2000):
+def generate_cybersecurity_data(n_samples=2000, filename='cybersecurity_threats.csv'):
+    import os
+    if os.path.exists(filename):
+        print(f"Loading existing incident data from {filename}")
+        try:
+            df = pd.read_csv(filename)
+            df['timestamp'] = pd.to_datetime(df['timestamp'])
+            return df
+        except Exception as e:
+            print(f"Error reading {filename}: {e}. Regenerating data.")
+
+    print("Generating new synthetic incident data...")
     np.random.seed(42)
     attack_types = ['Phishing', 'Ransomware', 'DDoS', 'Malware', 'Insider Threat']
     industries = ['Finance', 'Healthcare', 'Government', 'Education', 'Technology']
@@ -87,6 +110,11 @@ def generate_cybersecurity_data(n_samples=2000):
     )
     data['high_risk_incident'] = risk_conditions.astype(int)
     df = pd.DataFrame(data)
+    
+    # Save default generation to CSV
+    df.to_csv(filename, index=False)
+    print(f"Incident data saved to {filename}")
+    
     return df
 
 df = generate_cybersecurity_data()
@@ -222,12 +250,22 @@ comparison_df = pd.DataFrame({
 joblib.dump(baseline_model, 'baseline_model.pkl')
 joblib.dump(rf_model, 'random_forest_model.pkl')
 joblib.dump(gb_model, 'gradient_boosting_model.pkl')
-dnn_model.save('incident_dl_model.h5')
+
+try:
+    dnn_model.save('incident_dl_model.h5')
+except OSError as e:
+    print("Warning: incident_dl_model.h5 is open and locked by another process (Streamlit). Skipping overwrite.")
+
 joblib.dump(scaler, 'incident_scaler.pkl')
 joblib.dump(le_attack, 'label_encoder_attack.pkl')
 joblib.dump(le_industry, 'label_encoder_industry.pkl')
 joblib.dump(le_country, 'label_encoder_country.pkl')
-url_dnn_model.save('url_dl_model.h5')
+
+try:
+    url_dnn_model.save('url_dl_model.h5')
+except OSError as e:
+    print("Warning: url_dl_model.h5 is open and locked by another process (Streamlit). Skipping overwrite.")
+
 joblib.dump(url_scaler, 'url_scaler.pkl')
 joblib.dump(url_feature_cols, 'url_feature_cols.pkl')
 

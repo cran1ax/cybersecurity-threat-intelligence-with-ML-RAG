@@ -34,7 +34,15 @@ def extract_url_features(url):
 # -----------------------------
 # GENERATE MOCK DATA
 # -----------------------------
-def generate_mock_url_data(n_samples=1000):
+def generate_mock_url_data(n_samples=1000, filename='synthetic_urls_train.csv'):
+    import os
+    import pandas as pd
+    if os.path.exists(filename):
+        print(f"Loading existing URL data from {filename}...")
+        df = pd.read_csv(filename)
+        return df['url'].tolist(), df['risk'].values
+
+    print("Generating new URL data...")
     safe_urls = ["https://google.com", "https://github.com", "https://wikipedia.org"]
     malicious_urls = [
         "http://secure-login.bank-update.com",
@@ -53,6 +61,10 @@ def generate_mock_url_data(n_samples=1000):
             url = np.random.choice(malicious_urls)
             labels.append(1)
         urls.append(url)
+
+    df_save = pd.DataFrame({'url': urls, 'risk': labels})
+    df_save.to_csv(filename, index=False)
+    print(f"Saved new synthetic URL data to {filename}")
 
     return urls, np.array(labels)
 

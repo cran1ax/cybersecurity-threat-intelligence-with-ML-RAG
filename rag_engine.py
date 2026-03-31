@@ -18,11 +18,14 @@ if os.path.exists(QWEN_MODEL_PATH) and QWEN_MODEL_PATH.endswith(".gguf"):
     try:
         from langchain_community.llms import LlamaCpp
         print(f"Loading Qwen model from: {QWEN_MODEL_PATH}")
+        # We increase context window and allow n_batch to ensure it uses optimal threads on CPU
         llm = LlamaCpp(
             model_path=QWEN_MODEL_PATH,
             temperature=0.3,
             max_tokens=256,
             n_ctx=2048, # 2048 context window
+            n_batch=512, # Number of tokens to process in parallel
+            n_threads=max(1, os.cpu_count() - 1), # Use all available CPU cores minus 1
             verbose=False
         )
         is_qwen = True
@@ -31,6 +34,8 @@ if os.path.exists(QWEN_MODEL_PATH) and QWEN_MODEL_PATH.endswith(".gguf"):
         llm = None
 else:
     # Fallback to Flan-T5 if Qwen is not configured or path is wrong
+    from transformers import pipeline
+    print("Qwen model not found or path is wrong, using Flan-T5 fallback")
     llm = pipeline(
         "text2text-generation",
         model="google/flan-t5-small",
@@ -76,7 +81,13 @@ Question:
 """
         # Call llama-cpp wrapper
         result = llm.invoke(prompt)
-        return result.strip()
+        # Using returning object directly as a string or parsing correctly
+        if hasattr(result, "content"):
+            return result.content.strip()
+        elif isinstance(result, str):
+            return result.strip()
+        else:
+             return str(result).strip()
     else:
         # Instruction tuned models (like Flan-T5) just need a clear command.
         prompt = f"Answer the question based on the context.\n\nContext:\n{context}\n\nQuestion: {question}\n\nAnswer:"

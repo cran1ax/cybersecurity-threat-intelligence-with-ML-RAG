@@ -1,0 +1,28 @@
+=========================================================
+      URL THREAT CHECKER - TESTING EXAMPLES
+=========================================================
+
+Copy and paste these URLs into the "URL Threat Checker" 
+tab in your Streamlit dashboard to test the Deep Learning
+Classifier's response.
+
+---------------------------------------------------------
+✅ SAFE (NON-MALICIOUS) URLs
+(These exhibit normal lengths, structures, and domains)
+---------------------------------------------------------
+https://www.google.com/search?q=cybersecurity
+https://github.com/cran1ax/cybersecurity-threat-intelligence
+http://streamlit.io/documentation/getting-started
+https://en.wikipedia.org/wiki/Phishing
+https://www.microsoft.com/en-us/security/business/threat-intelligence
+
+
+---------------------------------------------------------
+🚨 MALICIOUS (PHISHING/RISK) URLs
+(These exhibit IP routing, credential flags, or DGA traits)
+---------------------------------------------------------
+http://192.168.1.45/login-verify-account.html
+http://secure-login.bank-update.com/verify-account?id=83726
+https://admin:password@103.45.2.1/docs/update
+http://paypal-secure-login..update-account.com/verify
+http://netflix.com-login-verification-secure-portal.info/login.php
