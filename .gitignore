@@ -7,3 +7,4 @@ __pycache__/
 .env
 models/
 *.gguf
+rag_explanation.md
