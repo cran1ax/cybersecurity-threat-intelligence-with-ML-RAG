@@ -233,77 +233,30 @@ joblib.dump(url_feature_cols, 'url_feature_cols.pkl')
 
 
 # ==================== LLM BOT LOGIC ====================
+from rag_engine import build_vector_store, ask_rag
 
-def get_gemini_response(prompt, history):
-    """Calls the Gemini API to get a grounded response."""
-    
-    # 1. Define the API configuration
-    system_prompt = "You are a Senior Cybersecurity Consultant named 'Gemini Defense Bot'. Your goal is to provide clear, actionable, and up-to-date advice on cybersecurity threats, incident response, and best practices. Use a professional, helpful, and concise tone. Always cite your sources if you use real-time information. Do not mention your internal system name or model version."
-    
-    API_KEY = os.getenv("API_KEY") # Must be empty string
-    API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={API_KEY}"
+# Initialize the vector DB using RAG engine
+@st.cache_resource
+def load_rag_engine():
+    try:
+        with open("knowledge.txt", "r", encoding="utf-8") as f:
+            knowledge_text = f.read()
+        vector_db = build_vector_store(knowledge_text)
+        return vector_db
+    except Exception as e:
+        st.error(f"Error loading RAG engine: {e}")
+        return None
 
-    # 2. Format the chat history for the API payload
-    chat_contents = [
-        {"role": "user" if msg["role"] == "user" else "model", "parts": [{"text": msg["content"]}]}
-        for msg in history
-    ]
-    chat_contents.append({"role": "user", "parts": [{"text": prompt}]})
+def get_rag_response(prompt, vector_db):
+    """Calls the local RAG engine to get a grounded response."""
+    if vector_db is None:
+        return "Error: Local knowledge base (RAG) is not available."
+    try:
+        response = ask_rag(vector_db, prompt)
+        return response
+    except Exception as e:
+        return f"An unexpected error occurred while processing the response: {e}"
 
-    # 3. Construct the API payload
-    payload = {
-        "contents": chat_contents,
-        "tools": [{"google_search": {}}], # Enable search grounding
-        "systemInstruction": {"parts": [{"text": system_prompt}]}
-    }
-
-    # 4. Make the request with exponential backoff
-    max_retries = 3
-    delay = 1
-    
-    for attempt in range(max_retries):
-        try:
-            response = requests.post(
-                API_URL, 
-                headers={'Content-Type': 'application/json'},
-                data=json.dumps(payload),
-                timeout=20
-            )
-            response.raise_for_status() # Raise HTTPError for bad responses (4xx or 5xx)
-            
-            result = response.json()
-            
-            # Extract content and grounding metadata
-            candidate = result.get('candidates', [{}])[0]
-            text = candidate.get('content', {}).get('parts', [{}])[0].get('text', 'Error: Could not retrieve text.')
-            
-            sources = []
-            grounding_metadata = candidate.get('groundingMetadata')
-            if grounding_metadata and grounding_metadata.get('groundingAttributions'):
-                sources = grounding_metadata['groundingAttributions']
-            
-            # Format output text with citations
-            if sources:
-                citations = "\n\n**Sources:**\n"
-                for i, source in enumerate(sources):
-                    title = source.get('web', {}).get('title', 'Untitled')
-                    uri = source.get('web', {}).get('uri', '#')
-                    citations += f"[{i+1}] [{title}]({uri})\n"
-                text += citations
-                
-            return text
-
-        except requests.exceptions.RequestException as e:
-            if attempt < max_retries - 1:
-                # print(f"API request failed: {e}. Retrying in {delay}s...") # Suppress debug logging as per instructions
-                time.sleep(delay)
-                delay *= 2
-            else:
-                return f"Sorry, the connection failed after multiple retries. Please check your network or try again later. ({e})"
-        except Exception as e:
-            return f"An unexpected error occurred while processing the response: {e}"
-
-    return "An unknown error occurred during API communication."
 
 
 # ==================== 6. STREAMLIT DASHBOARD ====================
@@ -318,7 +271,7 @@ def run_dashboard():
     # Initialize chat history for the bot
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = [
-            {"role": "model", "content": "Hello! I am Gemini Defense Bot. I can answer your questions about the latest cyber threats, incident response, and security best practices."}
+            {"role": "model", "content": "Hello! I am your Local Defense Bot. I can answer your questions about the latest cyber threats, incident response, and security best practices based on my local knowledge base."}
         ]
 
     # Load all models and components
@@ -352,6 +305,9 @@ def run_dashboard():
             return None, None, None, None, None, None, None, None
 
     models, incident_scaler, le_attack, le_industry, le_country, url_model, url_scaler, url_feature_cols = load_all_models()
+    
+    # Load RAG Engine
+    vector_db = load_rag_engine()
     
     # Create three tabs
     tab1, tab2, tab3 = st.tabs(["📊 Incident Risk Analyzer", "🌐 URL Threat Checker", "🤖 Ask the Bot"])
@@ -476,7 +432,7 @@ def run_dashboard():
     # ========== TAB 3: LLM CHAT BOT ==========
     with tab3:
         st.header("🤖 Cybersecurity Consultant Bot")
-        st.markdown("Ask the bot about the latest cyber threats, incident response protocols, or best security practices. (Powered by Gemini with Google Search grounding.)")
+        st.markdown("Ask the bot about the latest cyber threats, incident response protocols, or best security practices. (Powered by Local RAG with `distilgpt2` and `knowledge.txt`.)")
 
         # Display chat messages from history
         for message in st.session_state.chat_history:
@@ -492,9 +448,9 @@ def run_dashboard():
 
             # 2. Display thinking message (placeholder for bot)
             with st.chat_message("model"):
-                with st.spinner("Gemini Defense Bot is analyzing the threat..."):
-                    # 3. Get response from Gemini API
-                    response_text = get_gemini_response(prompt, st.session_state.chat_history)
+                with st.spinner("Cybersecurity Bot is analyzing the problem using local knowledge..."):
+                    # 3. Get response from RAG
+                    response_text = get_rag_response(prompt, vector_db)
                 
                     # 4. Display and save bot response
                     st.markdown(response_text)
