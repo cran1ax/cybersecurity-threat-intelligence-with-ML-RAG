@@ -198,6 +198,11 @@ def extract_url_features(url):
     features['has_at_symbol'] = int('@' in url)
     features['has_hyphen'] = int('-' in url)
     features['domain_length'] = len(netloc)
+    
+    # 🚨 CRITICAL FIX: Keyword extraction for phishing words was missing
+    suspicious_keywords = ["login", "verify", "secure", "update", "bank", "account", "paypal", "netflix"]
+    features['suspicious_word_count'] = sum(1 for word in suspicious_keywords if word in url.lower())
+    
     return pd.DataFrame([features])
 
 # Generate mock data for URL classifier
