@@ -11,7 +11,7 @@ from transformers import pipeline
 # Make sure to use forward slashes (/) or double backslashes (\\)
 # Example: QWEN_MODEL_PATH = "D:/Models/qwen2.5-3b-instruct-q4_k_m.gguf"
 # =================================================================================
-QWEN_MODEL_PATH = "models/qwen2.5-1.5b-instruct-q5_k_m.gguf" 
+QWEN_MODEL_PATH = "models/qwen2.5-0.5b-instruct-q5_k_m.gguf" 
 
 is_qwen = False
 if os.path.exists(QWEN_MODEL_PATH) and QWEN_MODEL_PATH.endswith(".gguf"):
