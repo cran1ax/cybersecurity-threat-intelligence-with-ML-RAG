@@ -475,7 +475,7 @@ def run_dashboard():
     # ========== TAB 3: LLM CHAT BOT ==========
     with tab3:
         st.header("🤖 Cybersecurity Consultant Bot")
-        st.markdown("Ask the bot about the latest cyber threats, incident response protocols, or best security practices. (Powered by Local RAG with `distilgpt2` and `knowledge.txt`.)")
+        st.markdown("Ask the bot about the latest cyber threats, incident response protocols, or best security practices. (Powered by Local RAG with Qwen 2.5 and `knowledge.txt`.)")
 
         # Display chat messages from history
         for message in st.session_state.chat_history:
